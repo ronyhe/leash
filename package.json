@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint ./**/*.js",
     "lint:fix": "eslint --fix ./**/*.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "",
   "license": "UNLICENSED",
@@ -15,5 +15,8 @@
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-prettier": "^3.1.0",
     "prettier": "1.18.2"
+  },
+  "dependencies": {
+    "lodash": "^4.17.15"
   }
 }
