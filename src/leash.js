@@ -1,22 +1,29 @@
-const mapValues = require('lodash/mapValues')
-
 const leash = (transformers = {}, consumers = {}) => {
-    const leasher = value => {
-        const obj = mapValues(transformers, method => (...args) =>
-            leasher(method(value, ...args))
-        )
+    class Leasher {
+        constructor(value) {
+            this.value = value
+        }
 
-        obj.get = () => value
-
-        Object.entries(consumers).forEach(([name, consumer]) => {
-            console.log(name)
-            obj[name] = (...args) => consumer(value, ...args)
-        })
-
-        return obj
+        get() {
+            return this.value
+        }
     }
 
-    return leasher
+    const proto = Leasher.prototype
+
+    Object.entries(transformers).forEach(([name, t]) => {
+        proto[name] = function(...args) {
+            return new Leasher(t(this.value, ...args))
+        }
+    })
+
+    Object.entries(consumers).forEach(([name, c]) => {
+        proto[name] = function(...args) {
+            return c(this.value, ...args)
+        }
+    })
+
+    return v => new Leasher(v)
 }
 
 module.exports = leash
