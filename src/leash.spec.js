@@ -1,60 +1,40 @@
 const leash = require('./leash')
 
-const addOne = 'addOne'
-const addTwo = 'addTwo'
+const SOME_NUMBER = 5
+const SOME_OTHER_NUMBER = SOME_NUMBER + 7
 
-const text = 'text'
+describe('API', () => {
+    it('has accessors', () => {
+        expectAccessors(leash())
+    })
 
-const transformers = {
-    [addOne]: x => x + 1,
-    [addTwo]: x => x + 2
+    it('returns its own value on get', () => {
+        expectGet(leash(SOME_NUMBER)).toBe(SOME_NUMBER)
+    })
+
+    it('returns a new leash on set, and does not alter the original', () => {
+        const original = leash(SOME_NUMBER)
+        const changed = original.set(SOME_OTHER_NUMBER)
+
+        expectGet(original).toBe(SOME_NUMBER)
+        expectGet(changed).toBe(SOME_OTHER_NUMBER)
+    })
+
+    it('returns a new leash on update, and does not alter the original', () => {
+        const plusOne = x => x + 1
+        const original = leash(SOME_NUMBER)
+        const changed = original.update(plusOne)
+
+        expectGet(original).toBe(SOME_NUMBER)
+        expectGet(changed).toBe(SOME_NUMBER + 1)
+    })
+})
+
+function expectGet(obj) {
+    return expect(obj.get())
 }
 
-const consumers = {
-    [text]: x => x.toString()
+function expectAccessors(obj) {
+    const accessors = ['get', 'set', 'update']
+    accessors.forEach(acc => expect(obj).toHaveProperty(acc))
 }
-
-it('Can be called without failing', () => {
-    expect(() => leash()).not.toThrow()
-})
-
-it('Return a function', () => {
-    expect(leash()).toBeInstanceOf(Function)
-})
-
-it('Takes transformers, then a value, and returns another object with the transformers', () => {
-    expect(leash(transformers)()).toHaveProperty(addOne)
-    expect(leash(transformers)()).toHaveProperty(addTwo)
-})
-
-it('Passes the value to the transformers as the first param', () => {
-    const fn = jest.fn()
-    const param = 1
-    leash({ fn })(param).fn()
-    expect(fn).toHaveBeenCalledWith(param)
-})
-
-it('Returns another leashed object from the chained methods, enabling chaining', () => {
-    expect(() =>
-        leash(transformers)(1)
-            .addOne()
-            .addTwo()
-    ).not.toThrow()
-})
-
-it('Adds a get method to extract the value after chaining', () => {
-    expect(
-        leash(transformers)(1)
-            .addOne()
-            .addTwo()
-            .get()
-    ).toBe(4)
-})
-
-it('Accepts consumers and adds them to the object', () => {
-    expect(leash(transformers, consumers)()).toHaveProperty(text)
-})
-
-it('Does not wrap the result of consumers', () => {
-    expect(leash(transformers, consumers)(1)[text]()).not.toHaveProperty(text)
-})
